@@ -1,0 +1,790 @@
+<title>נפגשים</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&family=Secular+One&display=swap" rel="stylesheet">
+<style>
+/* Layout: one narrow column. Wordmark on the right (RTL), cards stacked, availability grids scroll sideways inside their own box.
+   Concept: two overlapping circles = the overlap between people's free time. */
+:root {
+  --bg: #F3F6F5;
+  --surface: #FFFFFF;
+  --surface-2: #EAF0EE;
+  --ink: #12231E;
+  --muted: #566B64;
+  --line: #D9E2DF;
+  --line-strong: #B9C8C3;
+  --accent: #0C7A63;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #D3EEE5;
+  --mark: #F0B23A;
+  --mark-soft: #FBEFD0;
+  --warn: #B8412C;
+  --warn-soft: #F8E0DA;
+  --font-body: "Assistant", system-ui, "Arial Hebrew", Arial, sans-serif;
+  --font-display: "Secular One", "Assistant", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1715; --surface: #162320; --surface-2: #1D2D29; --ink: #E7F0ED; --muted: #94A8A1;
+    --line: #2A3B37; --line-strong: #3E544E; --accent: #3FC3A1; --accent-ink: #06231B; --accent-soft: #1B3B33;
+    --mark: #F0BE4A; --mark-soft: #3A3013; --warn: #FF907A; --warn-soft: #3E211B;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1715; --surface: #162320; --surface-2: #1D2D29; --ink: #E7F0ED; --muted: #94A8A1;
+  --line: #2A3B37; --line-strong: #3E544E; --accent: #3FC3A1; --accent-ink: #06231B; --accent-soft: #1B3B33;
+  --mark: #F0BE4A; --mark-soft: #3A3013; --warn: #FF907A; --warn-soft: #3E211B;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.55;
+  direction: rtl; text-align: start;
+  padding-block: 0 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 860px; margin: 0 auto; }
+a { color: var(--accent); }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; line-height: 1.2; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(1.9rem, 5vw, 2.7rem); }
+h2 { font-size: 1.35rem; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: .88rem; }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-size: 1.7rem; color: var(--ink); text-decoration: none; }
+.brand svg { display: block; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 42px; padding: 8px 16px;
+  border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--ink);
+  font: 600 .95rem var(--font-body); cursor: pointer; text-decoration: none;
+}
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.08); background: var(--accent); }
+.btn.warn { color: var(--warn); border-color: var(--warn); }
+.btn.small { min-height: 34px; padding: 4px 12px; font-size: .86rem; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; min-width: 0; }
+.field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: .92rem; min-width: 0; }
+input[type=text], input[type=number], select, textarea {
+  width: 100%; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--bg); color: var(--ink);
+  padding: 10px 12px; font: 400 1rem var(--font-body); min-height: 42px;
+}
+textarea { resize: vertical; }
+.err { color: var(--warn); font-size: .9rem; min-height: 1.2em; }
+.note { background: var(--warn-soft); color: var(--ink); border: 1px solid var(--warn); border-radius: 10px; padding: 10px 14px; font-size: .92rem; }
+
+.hero { padding-block: 24px 28px; display: flex; flex-direction: column; gap: 14px; }
+.hero p.lead { font-size: 1.12rem; color: var(--muted); max-width: 34em; }
+.steps { margin: 6px 0 0; padding: 0; list-style: none; counter-reset: s; display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.steps li { counter-increment: s; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0; }
+.steps li::before { content: counter(s); display: inline-flex; width: 26px; height: 26px; align-items: center; justify-content: center; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-weight: 700; margin-inline-end: 8px; font-size: .9rem; }
+.mrow { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; text-decoration: none; color: inherit; }
+.mrow h3 { font-size: 1.15rem; }
+
+/* calendar */
+.cal { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 10px; }
+.cal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cal-title { font-family: var(--font-display); font-size: 1.15rem; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-wk { text-align: center; font-size: .78rem; color: var(--muted); padding-block: 2px; }
+.cal-day { aspect-ratio: 1; min-height: 38px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); font: 600 .95rem var(--font-body); font-variant-numeric: tabular-nums; cursor: pointer; padding: 0; }
+.cal-day:hover:not([disabled]) { background: var(--accent-soft); }
+.cal-day[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.cal-day.today { border-color: var(--ink); }
+.cal-day.anchor { outline: 3px solid var(--mark); outline-offset: 1px; }
+.cal-day.locked { cursor: default; }
+.cal-day[disabled]:not(.locked) { opacity: .35; cursor: not-allowed; }
+.cal-opts { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: .92rem; }
+.cal-opts label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 4px 12px; font: 600 .88rem var(--font-body); font-variant-numeric: tabular-nums; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chip.static { cursor: default; background: var(--surface-2); }
+
+/* schedule grid */
+.sched-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.sched { display: grid; grid-template-columns: 52px repeat(var(--n), minmax(60px, 1fr)); min-width: calc(52px + var(--n) * 60px); user-select: none; -webkit-user-select: none; }
+.sched .corner, .sched .dh { background: var(--surface-2); }
+.dh { display: flex; flex-direction: column; align-items: center; padding: 6px 2px; font: 600 .78rem var(--font-body); color: var(--ink); border: 0; border-inline-start: 1px solid var(--line); line-height: 1.25; }
+button.dh { cursor: pointer; }
+button.dh:hover { background: var(--accent-soft); }
+.dh b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.dh.we { color: var(--muted); }
+.tl { height: 28px; display: flex; align-items: flex-start; justify-content: flex-end; padding: 2px 8px 0 0; font: 400 .72rem var(--font-body); color: var(--muted); border: 0; border-top: 1px dotted var(--line); background: transparent; line-height: 1; font-variant-numeric: tabular-nums; }
+.tl.hr { border-top: 1px solid var(--line-strong); }
+button.tl.hr { cursor: pointer; }
+button.tl.hr:hover { color: var(--ink); background: var(--accent-soft); }
+.slot { height: 28px; padding: 0; margin: 0; border: 0; border-top: 1px dotted var(--line); border-inline-start: 1px solid var(--line); background: transparent; touch-action: manipulation; }
+.slot.hr { border-top: 1px solid var(--line-strong); }
+.paint .slot { cursor: pointer; }
+.paint .slot:hover { background: var(--accent-soft); }
+.slot.on { background: var(--accent); }
+.slot.heat { background: color-mix(in srgb, var(--accent) calc(var(--p) * 100%), var(--surface)); }
+.slot.prop { box-shadow: inset 0 0 0 3px var(--mark); }
+.slot:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; position: relative; z-index: 1; }
+
+.status { border-radius: 14px; padding: 20px; border: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
+.status.ok { background: var(--accent-soft); border-color: var(--accent); }
+.status.prop { background: var(--mark-soft); border-color: var(--mark); }
+.status .big { font-family: var(--font-display); font-size: 1.6rem; line-height: 1.25; }
+.who { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+.who-i { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: .92rem; }
+.avatar { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font: 700 .8rem var(--font-body); flex: none; }
+.dayrow { display: flex; flex-direction: column; gap: 6px; padding-block: 8px; border-top: 1px solid var(--line); }
+.dayrow:first-child { border-top: 0; }
+.pickbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; background: var(--surface-2); border-radius: 10px; padding: 12px 14px; }
+.partial { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; padding-block: 10px; border-top: 1px solid var(--line); }
+.partial:first-of-type { border-top: 0; }
+details > summary { cursor: pointer; font-weight: 600; padding-block: 4px; }
+.legend { display: flex; align-items: center; gap: 8px; font-size: .82rem; color: var(--muted); flex-wrap: wrap; }
+.legend i { display: inline-block; width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--line-strong); }
+.link-in { font-family: ui-monospace, Menlo, monospace; font-size: .85rem; direction: ltr; text-align: left; }
+.toast { position: fixed; inset-inline: 0; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); margin-inline: auto; width: max-content; max-width: calc(100% - 32px); background: var(--ink); color: var(--bg); padding: 10px 18px; border-radius: 10px; font-weight: 600; z-index: 20; }
+@media (max-width: 520px) { .card { padding: 16px; } .status { padding: 16px; } }
+@media (prefers-reduced-motion: no-preference) { .btn, .chip, .cal-day { transition: background .12s, filter .12s; } }
+</style>
+
+<script>document.documentElement.lang = "he"; document.documentElement.dir = "rtl";</script>
+
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="#" aria-label="נפגשים, לדף הבית">
+      <svg width="34" height="26" viewBox="0 0 34 26" aria-hidden="true"><circle cx="12" cy="13" r="10" style="fill:var(--accent)" opacity=".92"/><circle cx="22" cy="13" r="10" style="fill:var(--mark)" opacity=".92"/></svg>
+      <span>נפגשים</span>
+    </a>
+    <a class="btn primary" href="#new">פגישה חדשה</a>
+  </header>
+  <main id="app"><p class="muted">טוען…</p></main>
+</div>
+
+<script>
+/*PURE-START*/
+const pad = n => String(n).padStart(2, "0");
+const fmtDate = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parseDate = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+const fmtTime = min => `${pad(Math.floor(min / 60))}:${pad(min % 60)}`;
+const SHORT = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "שבת"];
+const DAYS = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+const MONTHS = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"];
+const dayShort = s => SHORT[parseDate(s).getDay()];
+const dayMonth = s => { const d = parseDate(s); return `${d.getDate()}/${d.getMonth() + 1}`; };
+const dayLong = s => { const d = parseDate(s); return `יום ${DAYS[d.getDay()]}, ${d.getDate()} ב${MONTHS[d.getMonth()]}`; };
+const todayStr = () => fmtDate(new Date());
+const DUR = { 30: "חצי שעה", 60: "שעה", 90: "שעה וחצי", 120: "שעתיים", 180: "3 שעות" };
+const durLabel = m => DUR[m] || `${m} דקות`;
+
+function unionDays(meeting, responses, extra) {
+  const set = new Set(meeting.days || []);
+  (responses || []).forEach(r => (r.extraDays || []).forEach(d => set.add(d)));
+  (extra || []).forEach(d => set.add(d));
+  const t = todayStr();
+  return [...set].filter(d => d >= t).sort();
+}
+function buildPeople(responses) {
+  return (responses || []).filter(r => r.done).map(r => ({
+    uid: r.uid, name: r.name || "משתתף/ת",
+    sets: Object.fromEntries(Object.entries(r.avail || {}).map(([d, a]) => [d, new Set(a)]))
+  }));
+}
+function computeMatches(days, startMin, endMin, dur, people) {
+  const need = Math.ceil(dur / 30), out = [];
+  for (const day of days) {
+    for (let s = startMin; s < endMin; s += 30) {
+      let count = 0; const missing = [];
+      for (const p of people) {
+        const a = p.sets[day]; let ok = !!a;
+        if (ok) for (let k = 0; k < need; k++) { if (!a.has(s + 30 * k)) { ok = false; break; } }
+        if (ok) count++; else missing.push(p.name);
+      }
+      if (count > 0) out.push({ day, start: s, count, missing });
+    }
+  }
+  return out;
+}
+function groupFull(matches, N) {
+  const by = {};
+  matches.filter(m => m.count === N).forEach(m => { (by[m.day] = by[m.day] || []).push(m.start); });
+  return by;
+}
+function parseContacts(text) {
+  const phones = [], emails = [], bad = [];
+  String(text || "").split(/[,;\n]+/).map(s => s.trim()).filter(Boolean).forEach(tok => {
+    if (tok.includes("@")) { /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tok) ? emails.push(tok) : bad.push(tok); return; }
+    let d = tok.replace(/\D/g, "");
+    if (d.startsWith("00")) d = d.slice(2);
+    if (d.startsWith("0")) d = "972" + d.slice(1);
+    if (d.length >= 11 && d.length <= 14) phones.push({ label: tok, num: d }); else bad.push(tok);
+  });
+  return { phones, emails, bad };
+}
+function gcalLink(title, note, day, start, dur) {
+  const sd = parseDate(day);
+  const s = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate(), 0, start);
+  const e = new Date(sd.getFullYear(), sd.getMonth(), sd.getDate(), 0, start + dur);
+  const f = d => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+  const q = encodeURIComponent;
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${q(title)}&dates=${f(s)}/${f(e)}&ctz=${q("Asia/Jerusalem")}&details=${q(note || "")}`;
+}
+/*PURE-END*/
+
+(function () {
+  const app = document.getElementById("app");
+  const enc = encodeURIComponent;
+
+  /* ---------- small helpers ---------- */
+  function h(tag, attrs, ...kids) {
+    const e = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (v === false || v == null) continue;
+      if (k === "class") e.className = v;
+      else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+      else if (v === true) e.setAttribute(k, "");
+      else e.setAttribute(k, v);
+    }
+    for (const kid of kids.flat(Infinity)) { if (kid == null || kid === false) continue; e.append(kid.nodeType ? kid : document.createTextNode(String(kid))); }
+    return e;
+  }
+  const lsGet = k => { try { return localStorage.getItem("nifgashim." + k); } catch { return null; } };
+  const lsSet = (k, v) => { try { localStorage.setItem("nifgashim." + k, v); } catch { /* ignore */ } };
+  const recentIds = () => { try { return JSON.parse(lsGet("recent") || "[]"); } catch { return []; } };
+  const addRecent = id => { const l = recentIds().filter(x => x !== id); l.unshift(id); lsSet("recent", JSON.stringify(l.slice(0, 20))); };
+  const newId = () => Array.from(crypto.getRandomValues(new Uint8Array(6)), b => "abcdefghjkmnpqrstuvwxyz23456789"[b % 31]).join("");
+  let toastTimer;
+  function toast(msg) {
+    document.querySelectorAll(".toast").forEach(t => t.remove());
+    const t = h("div", { class: "toast", role: "status" }, msg); document.body.append(t);
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.remove(), 3200);
+  }
+  function writeErr(e) {
+    if (e && e.code === "invalid_argument") return "אין לך הרשאה לשמור באתר הזה. בקשו מבעל האתר גישת עריכה.";
+    if (e && e.code === "quota_exceeded") return "האתר הגיע למגבלת האחסון.";
+    return "השמירה לא הצליחה. נסו שוב.";
+  }
+  function avatar(name) {
+    let hash = 0; for (const c of String(name)) hash = (hash * 31 + c.charCodeAt(0)) % 360;
+    const a = h("span", { class: "avatar", "aria-hidden": "true" }, [...String(name || "?")][0] || "?");
+    a.style.background = `hsl(${hash} 50% 38%)`; return a;
+  }
+  async function copyText(text, input) {
+    try { await navigator.clipboard.writeText(text); toast("הועתק"); }
+    catch { if (input) { input.focus(); input.select(); } toast("ההעתקה נחסמה. סמנו והעתיקו ידנית."); }
+  }
+  let cleanups = [];
+  const onCleanup = f => cleanups.push(f);
+  function clearView() { cleanups.forEach(f => { try { f(); } catch { /* ignore */ } }); cleanups = []; app.replaceChildren(); window.scrollTo(0, 0); }
+
+  /* ---------- stores ---------- */
+  function makeDbStore(db) {
+    const M = id => db.collection("meetings").doc(id);
+    return {
+      kind: "db",
+      onMeeting: (id, cb, err) => M(id).onSnapshot(s => cb(s.exists ? { id, ...s.data() } : null), err),
+      onResponses: (id, cb, err) => M(id).collection("responses").onSnapshot(q => cb(q.docs.map(d => ({ ...d.data(), uid: d.id }))), err),
+      onMine: (uid, cb, err) => db.collection("meetings").where("hostId", "==", uid).onSnapshot(q => cb(q.docs.map(d => ({ id: d.id, ...d.data() }))), err),
+      getMeeting: async id => { const s = await M(id).get(); return s.exists ? { id, ...s.data() } : null; },
+      setMeeting: (id, data) => M(id).set(data),
+      updateMeeting: (id, patch) => M(id).update(patch),
+      setResponse: (id, uid, data) => M(id).collection("responses").doc(uid).set(data)
+    };
+  }
+  function makeMemStore() {
+    const meetings = new Map(), resp = new Map(), ls = new Set();
+    const fire = () => ls.forEach(f => f());
+    const sub = f => { ls.add(f); queueMicrotask(f); return () => ls.delete(f); };
+    const clone = o => (o == null ? o : JSON.parse(JSON.stringify(o)));
+    return {
+      kind: "mem",
+      onMeeting: (id, cb) => sub(() => cb(clone(meetings.get(id)) || null)),
+      onResponses: (id, cb) => sub(() => cb(clone([...(resp.get(id) || new Map()).entries()].map(([uid, d]) => ({ ...d, uid }))))),
+      onMine: (uid, cb) => sub(() => cb(clone([...meetings.values()].filter(m => m.hostId === uid)))),
+      getMeeting: async id => clone(meetings.get(id)) || null,
+      setMeeting: async (id, data) => { meetings.set(id, { id, ...clone(data) }); fire(); },
+      updateMeeting: async (id, patch) => { meetings.set(id, { ...meetings.get(id), ...clone(patch) }); fire(); },
+      setResponse: async (id, uid, data) => { if (!resp.has(id)) resp.set(id, new Map()); resp.get(id).set(uid, clone(data)); fire(); }
+    };
+  }
+
+  let store, uid = "", userNs = null, myName = lsGet("name") || "", canWrite = true;
+
+  /* ---------- calendar ---------- */
+  function makeCalendar({ isSelected, canPick, isLocked, onApply }) {
+    const now = new Date(); let vy = now.getFullYear(), vm = now.getMonth();
+    let range = false, anchor = null, skipWe = true;
+    const root = h("div", { class: "cal" });
+    function click(str) {
+      if (range) {
+        if (!anchor) { anchor = str; draw(); return; }
+        const [a, b] = [anchor, str].sort(); const out = [];
+        for (const t = parseDate(a); fmtDate(t) <= b; t.setDate(t.getDate() + 1)) {
+          const s = fmtDate(t), wd = t.getDay();
+          if (skipWe && (wd === 5 || wd === 6) && s !== a && s !== b) continue;
+          if (canPick(s)) out.push(s);
+        }
+        anchor = null; onApply(out, true); draw();
+      } else { onApply([str], !isSelected(str)); draw(); }
+    }
+    function draw() {
+      root.replaceChildren();
+      const first = new Date(vy, vm, 1).getDay(), count = new Date(vy, vm + 1, 0).getDate();
+      root.append(h("div", { class: "cal-head" },
+        h("button", { class: "btn small", type: "button", onclick: () => { vm--; if (vm < 0) { vm = 11; vy--; } draw(); } }, "חודש קודם"),
+        h("div", { class: "cal-title", "aria-live": "polite" }, `${MONTHS[vm]} ${vy}`),
+        h("button", { class: "btn small", type: "button", onclick: () => { vm++; if (vm > 11) { vm = 0; vy++; } draw(); } }, "חודש הבא")));
+      const grid = h("div", { class: "cal-grid" });
+      ["א", "ב", "ג", "ד", "ה", "ו", "ש"].forEach(w => grid.append(h("div", { class: "cal-wk" }, w)));
+      for (let i = 0; i < first; i++) grid.append(h("div"));
+      for (let d = 1; d <= count; d++) {
+        const str = fmtDate(new Date(vy, vm, d)); const locked = isLocked && isLocked(str);
+        const pickable = canPick(str) || locked;
+        grid.append(h("button", {
+          type: "button", class: "cal-day" + (str === todayStr() ? " today" : "") + (anchor === str ? " anchor" : "") + (locked ? " locked" : ""),
+          "aria-pressed": String(!!isSelected(str)), disabled: !pickable || locked, "aria-label": dayLong(str),
+          onclick: () => click(str)
+        }, d));
+        if (locked) { const b = grid.lastChild; b.removeAttribute("disabled"); b.setAttribute("aria-disabled", "true"); b.onclick = null; b.addEventListener("click", e => e.preventDefault()); }
+      }
+      root.append(grid);
+      const rc = h("input", { type: "checkbox", id: "cal-range" }); rc.checked = range;
+      rc.addEventListener("change", () => { range = rc.checked; anchor = null; draw(); });
+      const opts = h("div", { class: "cal-opts" }, h("label", {}, rc, "בחירת טווח תאריכים"));
+      if (range) {
+        const sk = h("input", { type: "checkbox", id: "cal-skip" }); sk.checked = skipWe;
+        sk.addEventListener("change", () => { skipWe = sk.checked; });
+        opts.append(h("label", {}, sk, "בלי שישי ושבת"));
+      }
+      root.append(opts);
+      if (range) root.append(h("p", { class: "muted small" }, anchor ? "עכשיו בחרו את תאריך הסיום." : "בחרו תאריך התחלה ואז תאריך סיום."));
+    }
+    draw();
+    return { el: root, refresh: draw };
+  }
+
+  /* ---------- schedule grid ---------- */
+  function buildGrid(days, start, end, fill, paintMode) {
+    const root = h("div", { class: "sched" + (paintMode ? " paint" : ""), style: `--n:${days.length}` });
+    root.append(h("div", { class: "corner" }));
+    days.forEach(d => {
+      const we = [5, 6].includes(parseDate(d).getDay());
+      root.append(h(paintMode ? "button" : "div", { class: "dh" + (we ? " we" : ""), type: paintMode ? "button" : null, "data-day": d, title: paintMode ? "סימון כל היום" : null }, h("span", {}, dayShort(d)), h("b", {}, dayMonth(d))));
+    });
+    for (let m = start; m < end; m += 30) {
+      const hr = m % 60 === 0;
+      root.append(hr && paintMode ? h("button", { class: "tl hr", type: "button", "data-hour": m, title: "סימון השעה בכל הימים" }, fmtTime(m)) : h("div", { class: "tl" + (hr ? " hr" : "") }, hr ? fmtTime(m) : ""));
+      days.forEach(d => {
+        const c = h(paintMode ? "button" : "div", { class: "slot" + (hr ? " hr" : ""), type: paintMode ? "button" : null, "data-day": d, "data-min": m, "aria-label": `${dayLong(d)} ${fmtTime(m)}` });
+        fill(c, d, m); root.append(c);
+      });
+    }
+    return root;
+  }
+
+  /* ---------- home ---------- */
+  function showHome() {
+    clearView();
+    const list = h("div", { class: "stack" });
+    app.append(
+      h("section", { class: "hero" },
+        h("h1", {}, "קובעים פגישה בלי מרתון הודעות"),
+        h("p", { class: "lead" }, "מסמנים מתי נוח, מזמינים בוואטסאפ או ב-Gmail, והאתר מוצא את הזמן שמתאים לכולם."),
+        h("div", {}, h("a", { class: "btn primary", href: "#new" }, "פתיחת פגישה חדשה")),
+        h("ol", { class: "steps" },
+          h("li", {}, "פותחים פגישה ומסמנים ימים ושעות שנוחים לכם."),
+          h("li", {}, "שולחים הזמנה. כל משתתף מסמן את הזמנים שלו."),
+          h("li", {}, "האתר מחשב את החפיפה ומציע זמן. אחרי אישור של כולם מוסיפים ליומן גוגל."))),
+      h("section", { class: "stack" }, h("h2", {}, "הפגישות שלי"), list));
+    const mine = new Map();
+    const draw = () => {
+      list.replaceChildren();
+      const arr = [...mine.values()].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      if (!arr.length) { list.append(h("p", { class: "muted" }, "עוד אין פגישות. פגישה שפתחתם או נכנסתם אליה תופיע כאן.")); return; }
+      arr.forEach(m => {
+        const ds = (m.days || []).slice().sort();
+        list.append(h("a", { class: "card mrow", href: "#m-" + m.id },
+          h("div", {}, h("h3", {}, m.title), h("p", { class: "muted small" }, `מארגן/ת: ${m.hostName || "?"} · ${durLabel(m.durationMin)}` + (ds.length ? ` · ${dayMonth(ds[0])}${ds.length > 1 ? "–" + dayMonth(ds[ds.length - 1]) : ""}` : ""))),
+          h("span", { class: "btn small" }, "פתיחה")));
+      });
+    };
+    draw();
+    onCleanup(store.onMine(uid, ms => { ms.forEach(m => mine.set(m.id, m)); draw(); }, () => {}));
+    recentIds().forEach(id => store.getMeeting(id).then(m => { if (m) { mine.set(m.id, m); draw(); } }).catch(() => {}));
+  }
+
+  /* ---------- create ---------- */
+  function showCreate() {
+    clearView();
+    const selected = new Set();
+    let duration = 60, start = 480, end = 1320;
+    const nameI = h("input", { id: "c-name", type: "text", maxlength: "40", placeholder: "השם שיופיע למשתתפים" }); nameI.value = myName;
+    const titleI = h("input", { id: "c-title", type: "text", maxlength: "80", placeholder: "למשל: ארוחת ערב, סיכום פרויקט, קפה" });
+    const noteI = h("textarea", { id: "c-note", rows: "2", maxlength: "300", placeholder: "פרטים, מקום, קישור לזום (לא חובה)" });
+    const durS = h("select", { id: "c-dur" }, [30, 60, 90, 120, 180].map(m => h("option", { value: m }, durLabel(m))));
+    durS.value = "60"; durS.addEventListener("change", () => { duration = +durS.value; });
+    const hrs = (from, to) => { const o = []; for (let m = from; m <= to; m += 60) o.push(h("option", { value: m }, fmtTime(m))); return o; };
+    const startS = h("select", { id: "c-start" }, hrs(360, 1380)); startS.value = "480"; startS.addEventListener("change", () => { start = +startS.value; });
+    const endS = h("select", { id: "c-end" }, hrs(420, 1440)); endS.value = "1320"; endS.addEventListener("change", () => { end = +endS.value; });
+    const picked = h("div", { class: "chips", "aria-live": "polite" });
+    const err = h("div", { class: "err", role: "alert" });
+    const drawPicked = () => {
+      picked.replaceChildren();
+      const arr = [...selected].sort();
+      if (!arr.length) { picked.append(h("span", { class: "muted small" }, "עוד לא נבחרו ימים.")); return; }
+      arr.forEach(d => picked.append(h("button", { class: "chip", type: "button", title: "הסרה", onclick: () => { selected.delete(d); drawPicked(); cal.refresh(); } }, `${dayShort(d)} ${dayMonth(d)}  ✕`)));
+    };
+    const cal = makeCalendar({
+      isSelected: s => selected.has(s), canPick: s => s >= todayStr(),
+      onApply: (ds, on) => { ds.forEach(d => on ? selected.add(d) : selected.delete(d)); drawPicked(); }
+    });
+    const submit = async () => {
+      err.textContent = "";
+      const name = nameI.value.trim(), title = titleI.value.trim();
+      if (!name) { err.textContent = "כתבו את השם שלכם."; nameI.focus(); return; }
+      if (!title) { err.textContent = "תנו שם לפגישה."; titleI.focus(); return; }
+      if (!selected.size) { err.textContent = "בחרו לפחות יום אחד בלוח."; return; }
+      if (end - start < duration) { err.textContent = "טווח השעות קצר מאורך הפגישה."; return; }
+      myName = name; lsSet("name", name);
+      const id = newId();
+      try {
+        await store.setMeeting(id, { title, note: noteI.value.trim(), hostId: uid, hostName: name, durationMin: duration, days: [...selected].sort(), startMin: start, endMin: end, proposal: null, createdAt: Date.now() });
+        addRecent(id); location.hash = "m-" + id;
+      } catch (e) { err.textContent = writeErr(e); }
+    };
+    app.append(h("div", { class: "stack" },
+      h("h1", {}, "פגישה חדשה"),
+      h("section", { class: "card stack" },
+        h("div", { class: "field" }, h("label", { for: "c-name" }, "השם שלך"), nameI),
+        h("div", { class: "field" }, h("label", { for: "c-title" }, "על מה הפגישה"), titleI),
+        h("div", { class: "field" }, h("label", { for: "c-note" }, "הערה למשתתפים"), noteI),
+        h("div", { class: "field" }, h("label", { for: "c-dur" }, "כמה זמן הפגישה"), durS)),
+      h("section", { class: "card stack" },
+        h("h2", {}, "אילו ימים אפשריים"),
+        h("p", { class: "muted" }, "לחצו על ימים בודדים, או הפעילו טווח תאריכים כדי לסמן כמה ימים ברצף. המשתתפים יוכלו להוסיף ימים משלהם."),
+        cal.el, picked),
+      h("section", { class: "card stack" },
+        h("h2", {}, "באילו שעות לחפש"),
+        h("p", { class: "muted" }, "זה הטווח שיוצג בלוח הזמינות. אחרי היצירה תסמנו בתוכו את החצאי שעות שנוחים לכם."),
+        h("div", { class: "row" },
+          h("div", { class: "field" }, h("label", { for: "c-start" }, "משעה"), startS),
+          h("div", { class: "field" }, h("label", { for: "c-end" }, "עד שעה"), endS))),
+      err,
+      h("div", { class: "row" },
+        h("button", { class: "btn primary", type: "button", onclick: submit }, "יצירת פגישה והמשך לסימון זמינות"),
+        h("a", { class: "btn", href: "#" }, "ביטול"))));
+    drawPicked();
+  }
+
+  /* ---------- meeting ---------- */
+  function showMeeting(mid) {
+    clearView(); addRecent(mid);
+    const S = { meeting: null, responses: [], draft: { name: myName, sets: new Map(), extra: new Set() }, draftReady: false, dirty: false, gotM: false, gotR: false, pick: null, mineKey: "", inviteBuilt: false, heatOpen: false, calOpen: false };
+    const el = { head: h("section", { class: "card stack" }), status: h("div"), mine: h("section", { class: "card stack" }), results: h("section", { class: "card stack" }), invite: h("section", { class: "card stack" }) };
+    const loading = h("p", { class: "muted" }, "טוען את הפגישה…");
+    app.append(loading);
+    const t = setTimeout(() => { if (!S.gotM) loading.textContent = "לא הצלחנו להגיע לנתונים עדיין. בדקו את החיבור ורעננו."; }, 10000);
+    onCleanup(() => clearTimeout(t));
+    const isHost = () => S.meeting && S.meeting.hostId === uid;
+    const unionNow = () => unionDays(S.meeting, S.responses, [...S.draft.extra]);
+    const upsertMine = async patch => {
+      const cur = S.responses.find(r => r.uid === uid) || {};
+      const next = { ...cur, name: S.draft.name.trim() || myName || "אורח/ת", ...patch, updatedAt: Date.now() }; delete next.uid;
+      await store.setResponse(mid, uid, next);
+    };
+    const proposalState = () => {
+      const p = S.meeting.proposal; if (!p) return null;
+      const key = `${p.day}|${p.start}`;
+      const rel = S.responses.filter(r => r.done || r.approve === key || r.decline === key);
+      const approved = rel.filter(r => r.approve === key), declined = rel.filter(r => r.decline === key), pending = rel.filter(r => r.approve !== key);
+      return { p, key, rel, approved, declined, pending, confirmed: rel.length >= 2 && pending.length === 0 };
+    };
+    const names = a => a.map(r => r.name || "משתתף/ת").join(", ");
+
+    function maybeInitDraft() {
+      if (S.draftReady || !S.gotR) return;
+      const me = S.responses.find(r => r.uid === uid);
+      if (me) {
+        if (me.name) S.draft.name = me.name;
+        Object.entries(me.avail || {}).forEach(([d, a]) => S.draft.sets.set(d, new Set(a)));
+        (me.extraDays || []).forEach(d => S.draft.extra.add(d));
+      }
+      S.draftReady = true;
+    }
+
+    async function propose(day, start) {
+      if (!canWrite) return;
+      try {
+        await store.updateMeeting(mid, { proposal: { day, start, by: uid, at: Date.now() } });
+        await upsertMine({ approve: `${day}|${start}`, decline: null });
+        toast("ההצעה נשלחה לכולם");
+      } catch (e) { toast(writeErr(e)); }
+    }
+    async function respond(key, yes) {
+      try { await upsertMine(yes ? { approve: key, decline: null } : { approve: null, decline: key }); toast(yes ? "אישרת את הזמן" : "עדכנו שהזמן לא מתאים לך"); }
+      catch (e) { toast(writeErr(e)); }
+    }
+
+    function drawHead() {
+      const m = S.meeting; el.head.replaceChildren(
+        h("h1", {}, m.title),
+        m.note ? h("p", {}, m.note) : null,
+        h("p", { class: "muted small" }, `מארגן/ת: ${m.hostName || "?"} · אורך: ${durLabel(m.durationMin)} · טווח שעות: ${fmtTime(m.startMin)}–${fmtTime(m.endMin)}`),
+        !canWrite ? h("div", { class: "note" }, "יש לך גישת צפייה בלבד, לכן אי אפשר לשמור זמינות או לאשר.") : null,
+        store.kind === "mem" ? h("div", { class: "note" }, "השמירה המשותפת לא זמינה כרגע. מה שתסמנו נשמר רק בדף הזה.") : null);
+    }
+
+    function drawStatus() {
+      const m = S.meeting, ps = proposalState(); el.status.replaceChildren();
+      if (!ps) return;
+      const { p } = ps, endT = p.start + m.durationMin, when = `${dayLong(p.day)} · ${fmtTime(p.start)}–${fmtTime(endT)}`;
+      const mineApproved = ps.approved.some(r => r.uid === uid), mineDeclined = ps.declined.some(r => r.uid === uid);
+      if (ps.confirmed) {
+        const details = `${m.title}\n${when}\nמשתתפים: ${names(ps.rel)}` + (m.note ? `\n${m.note}` : "");
+        el.status.append(h("section", { class: "status ok" },
+          h("h2", {}, "הפגישה נקבעה"),
+          h("div", { class: "big" }, when),
+          h("p", {}, `משתתפים: ${names(ps.rel)}`),
+          h("div", { class: "row" },
+            h("a", { class: "btn primary", href: gcalLink(m.title, m.note, p.day, p.start, m.durationMin), target: "_blank", rel: "noopener" }, "הוספה ליומן גוגל"),
+            h("button", { class: "btn", type: "button", onclick: () => copyText(details) }, "העתקת הפרטים")),
+          isHost() ? h("div", {}, h("button", { class: "btn small", type: "button", onclick: () => store.updateMeeting(mid, { proposal: null }).catch(e => toast(writeErr(e))) }, "ביטול הפגישה וחזרה לחיפוש")) : null));
+        return;
+      }
+      const acts = h("div", { class: "row" });
+      if (!mineApproved) acts.append(h("button", { class: "btn primary", type: "button", disabled: !canWrite, onclick: () => respond(ps.key, true) }, "מתאים לי, מאשר/ת"));
+      if (!mineDeclined && !(isHost() && mineApproved)) acts.append(h("button", { class: "btn", type: "button", disabled: !canWrite, onclick: () => respond(ps.key, false) }, "לא מתאים לי"));
+      if (isHost()) acts.append(h("button", { class: "btn warn", type: "button", onclick: () => store.updateMeeting(mid, { proposal: null }).catch(e => toast(writeErr(e))) }, "ביטול ההצעה"));
+      el.status.append(h("section", { class: "status prop" },
+        h("h2", {}, "הוצע זמן לפגישה"),
+        h("div", { class: "big" }, when),
+        h("p", {}, ps.approved.length ? `אישרו: ${names(ps.approved)}` : "עוד אף אחד לא אישר."),
+        ps.pending.length ? h("p", { class: "muted" }, `ממתינים לתשובה: ${names(ps.pending.filter(r => !r.decline || r.decline !== ps.key))}`) : null,
+        ps.declined.length ? h("p", { class: "note" }, `הזמן לא מתאים ל: ${names(ps.declined)}. המארגן/ת יכול/ה להציע זמן אחר.`) : null,
+        acts));
+    }
+
+    /* paint */
+    const isOn = (d, m) => !!(S.draft.sets.get(d) && S.draft.sets.get(d).has(m));
+    const setOn = (d, m, v) => { let s = S.draft.sets.get(d); if (!s) { s = new Set(); S.draft.sets.set(d, s); } v ? s.add(m) : s.delete(m); S.dirty = true; };
+    const paintCell = c => { const on = isOn(c.dataset.day, +c.dataset.min); c.classList.toggle("on", on); c.setAttribute("aria-pressed", String(on)); };
+    let saveBtn, saveNote;
+    const updateSaveBtn = () => {
+      if (!saveBtn) return;
+      saveBtn.disabled = !canWrite; saveNote.textContent = S.dirty ? "יש שינויים שלא נשמרו." : (S.responses.some(r => r.uid === uid && r.done) ? "הזמינות שלך שמורה." : "");
+    };
+    async function saveAvail(nameI) {
+      const name = S.draft.name.trim();
+      if (!name) { toast("כתבו את השם שלכם לפני השמירה"); nameI.focus(); return; }
+      const avail = {}; S.draft.sets.forEach((set, d) => { if (set.size) avail[d] = [...set].sort((a, b) => a - b); });
+      saveBtn.disabled = true;
+      try {
+        await upsertMine({ name, avail, extraDays: [...S.draft.extra].sort(), done: true });
+        myName = name; lsSet("name", name); S.dirty = false; toast("הזמינות נשמרה");
+      } catch (e) { toast(writeErr(e)); }
+      updateSaveBtn();
+    }
+
+    function ensureCal() {
+      if (S.cal) return S.cal;
+      S.cal = makeCalendar({
+        isSelected: d => unionNow().includes(d) || (S.meeting.days || []).includes(d),
+        canPick: d => d >= todayStr(),
+        isLocked: d => !isHost() && (S.meeting.days || []).includes(d),
+        onApply: async (ds, on) => {
+          if (!canWrite) { toast("אין לך הרשאת עריכה."); return; }
+          if (isHost()) {
+            const set = new Set(S.meeting.days || []); ds.forEach(d => on ? set.add(d) : set.delete(d));
+            if (!set.size) { toast("חייב להישאר לפחות יום אחד."); return; }
+            try { await store.updateMeeting(mid, { days: [...set].sort() }); } catch (e) { toast(writeErr(e)); }
+          } else { ds.forEach(d => on ? S.draft.extra.add(d) : S.draft.extra.delete(d)); S.dirty = true; S.mineKey = ""; drawMine(); }
+        }
+      });
+      return S.cal;
+    }
+
+    function drawMine() {
+      if (!S.draftReady) { el.mine.replaceChildren(h("p", { class: "muted" }, "טוען…")); return; }
+      const m = S.meeting, days = unionNow();
+      const key = JSON.stringify([days, m.startMin, m.endMin, canWrite, isHost()]);
+      if (key === S.mineKey) { updateSaveBtn(); return; }
+      S.mineKey = key; const box = el.mine; box.replaceChildren();
+      const nameI = h("input", { id: "m-name", type: "text", maxlength: "40", placeholder: "השם שיופיע למשתתפים" }); nameI.value = S.draft.name;
+      nameI.addEventListener("input", () => { S.draft.name = nameI.value; S.dirty = true; updateSaveBtn(); });
+      const fill = (a, b, on) => { days.forEach(d => { for (let x = a; x < b; x += 30) if (x >= m.startMin && x < m.endMin) setOn(d, x, on); }); grid && grid.querySelectorAll(".slot").forEach(paintCell); updateSaveBtn(); };
+      let grid = null;
+      box.append(h("h2", {}, "הזמינות שלי"),
+        h("p", { class: "muted" }, "סמנו את חצאי השעות שנוחים לכם. בעכבר אפשר לגרור כדי לצבוע כמה משבצות. בנייד נוגעים בכל משבצת. לחיצה על כותרת יום או על שעה מסמנת את כולה."),
+        h("div", { class: "field" }, h("label", { for: "m-name" }, "השם שלך"), nameI));
+      if (!days.length) { box.append(h("p", { class: "note" }, "כל הימים שנבחרו כבר עברו. " + (isHost() ? "הוסיפו ימים חדשים למטה." : "המארגן/ת צריך/ה להוסיף ימים."))); }
+      else {
+        box.append(h("div", { class: "row" },
+          h("span", { class: "muted small" }, "מילוי מהיר לכל הימים:"),
+          h("button", { class: "btn small", type: "button", onclick: () => fill(m.startMin, m.endMin, true) }, "כל הטווח"),
+          h("button", { class: "btn small", type: "button", onclick: () => fill(540, 1020, true) }, "9:00–17:00"),
+          h("button", { class: "btn small", type: "button", onclick: () => fill(1020, 1320, true) }, "17:00–22:00"),
+          h("button", { class: "btn small", type: "button", onclick: () => fill(0, 1440, false) }, "ניקוי")));
+        grid = buildGrid(days, m.startMin, m.endMin, paintCell, true);
+        grid.querySelectorAll(".slot").forEach(paintCell);
+        attachPaint(grid, days, m);
+        box.append(h("div", { class: "sched-scroll" }, grid));
+      }
+      const cal = ensureCal(); cal.refresh();
+      const det = h("details", { ontoggle: e => { S.calOpen = e.target.open; } }, h("summary", {}, isHost() ? "עריכת הימים של הפגישה" : "הוספת ימים שנוחים לי"), h("div", { class: "stack", style: "padding-top:12px" }, h("p", { class: "muted small" }, isHost() ? "ימים שתוסיפו או תסירו כאן משתנים לכל המשתתפים." : "ימים שתוסיפו יופיעו לכולם אחרי השמירה. ימים של המארגן/ת נעולים."), cal.el));
+      det.open = S.calOpen; box.append(det);
+      saveBtn = h("button", { class: "btn primary", type: "button", onclick: () => saveAvail(nameI) }, "שמירת הזמינות");
+      saveNote = h("span", { class: "muted small", "aria-live": "polite" });
+      box.append(h("div", { class: "row" }, saveBtn, saveNote)); updateSaveBtn();
+    }
+
+    function attachPaint(grid, days, m) {
+      let painting = false, val = false, touchCell = null;
+      const apply = (c, v) => { setOn(c.dataset.day, +c.dataset.min, v); paintCell(c); updateSaveBtn(); };
+      const cellAt = (x, y) => { const e = document.elementFromPoint(x, y); return e && e.closest ? e.closest(".slot") : null; };
+      grid.addEventListener("pointerdown", e => {
+        const c = e.target.closest(".slot"); if (!c || !canWrite) return;
+        if (e.pointerType === "touch") { touchCell = c; return; }
+        e.preventDefault(); painting = true; val = !isOn(c.dataset.day, +c.dataset.min); apply(c, val);
+        try { grid.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+      });
+      grid.addEventListener("pointermove", e => { if (!painting) return; const c = cellAt(e.clientX, e.clientY); if (c && isOn(c.dataset.day, +c.dataset.min) !== val) apply(c, val); });
+      const end = e => {
+        painting = false;
+        if (e.type === "pointerup" && e.pointerType === "touch" && touchCell) { const c = cellAt(e.clientX, e.clientY); if (c === touchCell) apply(c, !isOn(c.dataset.day, +c.dataset.min)); }
+        touchCell = null;
+      };
+      grid.addEventListener("pointerup", end); grid.addEventListener("pointercancel", end);
+      grid.addEventListener("click", e => {
+        if (!canWrite) return;
+        const c = e.target.closest(".slot");
+        if (c) { if (e.detail === 0) apply(c, !isOn(c.dataset.day, +c.dataset.min)); return; }
+        const dh = e.target.closest("button.dh");
+        if (dh) { const d = dh.dataset.day, cells = [...grid.querySelectorAll(`.slot[data-day="${d}"]`)]; const all = cells.every(x => isOn(d, +x.dataset.min)); cells.forEach(x => apply(x, !all)); return; }
+        const tl = e.target.closest("button.tl");
+        if (tl) { const hm = +tl.dataset.hour, cells = [...grid.querySelectorAll(".slot")].filter(x => +x.dataset.min === hm || +x.dataset.min === hm + 30); const all = cells.every(x => isOn(x.dataset.day, +x.dataset.min)); cells.forEach(x => apply(x, !all)); }
+      });
+    }
+
+    function drawResults() {
+      const m = S.meeting, box = el.results; box.replaceChildren();
+      const people = buildPeople(S.responses), N = people.length, days = unionNow();
+      box.append(h("h2", {}, "מתי כולם פנויים"),
+        h("div", { class: "who" }, N ? people.map(p => h("span", { class: "who-i" }, avatar(p.name), p.name)) : h("span", { class: "muted" }, "עוד אף אחד לא שמר זמינות.")));
+      if (N < 2) { box.append(h("p", { class: "muted" }, N === 1 ? "רק משתתף אחד שמר זמינות. כשעוד אנשים ישמרו, יופיעו כאן זמנים משותפים." : "שמרו את הזמינות שלכם ושלחו הזמנה לאחרים.")); }
+      else {
+        const matches = computeMatches(days, m.startMin, m.endMin, m.durationMin, people), byDay = groupFull(matches, N), fullDays = Object.keys(byDay).sort();
+        if (fullDays.length) {
+          const best = { day: fullDays[0], start: byDay[fullDays[0]][0] };
+          const pk = S.pick && byDay[S.pick.day] && byDay[S.pick.day].includes(S.pick.start) ? S.pick : best;
+          box.append(h("p", {}, `נמצאו זמנים שמתאימים לכל ${N} המשתתפים. בחרו שעת התחלה:`));
+          const wrap = h("div", {});
+          fullDays.forEach(d => wrap.append(h("div", { class: "dayrow" }, h("b", {}, dayLong(d)),
+            h("div", { class: "chips" }, byDay[d].map(s => h("button", { class: "chip", type: "button", "aria-pressed": String(pk.day === d && pk.start === s), onclick: () => { S.pick = { day: d, start: s }; drawResults(); } }, fmtTime(s)))))));
+          box.append(wrap);
+          const label = `${dayLong(pk.day)} · ${fmtTime(pk.start)}–${fmtTime(pk.start + m.durationMin)}`;
+          box.append(h("div", { class: "pickbar" }, h("div", {}, h("div", { class: "muted small" }, "הזמן שנבחר"), h("b", {}, label)),
+            isHost() ? h("button", { class: "btn primary", type: "button", disabled: !canWrite, onclick: () => propose(pk.day, pk.start) }, "הצעה לכולם") : h("span", { class: "muted small" }, "המארגן/ת יציע/תציע זמן מתוך הרשימה")));
+        } else {
+          box.append(h("p", { class: "note" }, "אין זמן שמתאים לכולם כרגע. אלה הזמנים הקרובים ביותר:"));
+          const seen = new Set(), top = matches.slice().sort((a, b) => b.count - a.count || a.day.localeCompare(b.day) || a.start - b.start)
+            .filter(x => { const k = x.day + x.missing.join(); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 5);
+          top.forEach(x => box.append(h("div", { class: "partial" },
+            h("div", {}, h("b", {}, `${dayLong(x.day)} · ${fmtTime(x.start)}`), h("div", { class: "muted small" }, `${x.count} מתוך ${N} פנויים. לא פנויים: ${x.missing.join(", ")}`)),
+            isHost() ? h("button", { class: "btn small", type: "button", disabled: !canWrite, onclick: () => propose(x.day, x.start) }, "הצעה בכל זאת") : null)));
+        }
+      }
+      if (N && days.length) {
+        const cnt = new Map(); people.forEach(p => Object.entries(p.sets).forEach(([d, set]) => set.forEach(x => cnt.set(d + "|" + x, (cnt.get(d + "|" + x) || 0) + 1))));
+        const ps = proposalState();
+        const det = h("details", { ontoggle: e => { S.heatOpen = e.target.open; } }, h("summary", {}, "מפת הזמינות של כולם"));
+        const grid = buildGrid(days, m.startMin, m.endMin, (c, d, x) => {
+          const n = cnt.get(d + "|" + x) || 0;
+          if (n) { c.classList.add("heat"); c.style.setProperty("--p", (n / N).toFixed(2)); }
+          c.title = `${n} מתוך ${N} פנויים`;
+          if (ps && ps.p.day === d && x >= ps.p.start && x < ps.p.start + m.durationMin) c.classList.add("prop");
+        }, false);
+        det.append(h("div", { class: "stack", style: "padding-top:12px" },
+          h("div", { class: "legend" }, h("i", { style: "background:var(--accent)" }), "כולם פנויים", h("i", { style: "background:color-mix(in srgb,var(--accent) 35%,var(--surface))" }), "חלק מהאנשים", ps ? h("i", { style: "box-shadow:inset 0 0 0 3px var(--mark)" }) : null, ps ? "הזמן שהוצע" : null),
+          h("div", { class: "sched-scroll" }, grid)));
+        det.open = S.heatOpen; box.append(det);
+      }
+    }
+
+    function buildInvite() {
+      S.inviteBuilt = true; const box = el.invite, m = S.meeting;
+      let msgDirty = false;
+      const baseI = h("input", { id: "i-base", type: "text", class: "link-in", dir: "ltr" }); baseI.value = lsGet("base") || location.href.split("#")[0];
+      const linkI = h("input", { id: "i-link", type: "text", class: "link-in", dir: "ltr", readonly: true });
+      const msgT = h("textarea", { id: "i-msg", rows: "3" });
+      const contactsT = h("textarea", { id: "i-contacts", rows: "3", placeholder: "050-1234567\nname@gmail.com" });
+      const out = h("div", { class: "stack" });
+      const link = () => baseI.value.split("#")[0].trim() + "#m-" + mid;
+      const defMsg = () => `היי! אני רוצה לקבוע ${m.title}. אפשר לסמן כאן מתי נוח לך: ${link()}`;
+      const render = () => {
+        linkI.value = link(); if (!msgDirty) msgT.value = defMsg();
+        const c = parseContacts(contactsT.value), msg = msgT.value; out.replaceChildren();
+        const wa = h("div", { class: "row" }, h("a", { class: "btn", href: `https://wa.me/?text=${enc(msg)}`, target: "_blank", rel: "noopener" }, "וואטסאפ: בחירת איש קשר או קבוצה"));
+        c.phones.forEach(p => wa.append(h("a", { class: "btn", href: `https://wa.me/${p.num}?text=${enc(msg)}`, target: "_blank", rel: "noopener" }, `וואטסאפ ל-${p.label}`)));
+        const gm = h("a", { class: "btn", href: `https://mail.google.com/mail/?view=cm&fs=1&to=${enc(c.emails.join(","))}&su=${enc("הזמנה לקביעת פגישה: " + m.title)}&body=${enc(msg)}`, target: "_blank", rel: "noopener" }, c.emails.length ? `Gmail ל-${c.emails.length} כתובות` : "פתיחת הודעה ב-Gmail");
+        out.append(wa, h("div", { class: "row" }, gm), c.bad.length ? h("p", { class: "err" }, `לא זיהינו: ${c.bad.join(", ")}`) : null);
+      };
+      baseI.addEventListener("input", () => { lsSet("base", baseI.value); render(); });
+      msgT.addEventListener("input", () => { msgDirty = true; render(); });
+      contactsT.addEventListener("input", render);
+      box.append(h("h2", {}, "הזמנת משתתפים"),
+        h("p", { class: "muted" }, "הכפתורים פותחים הודעה מוכנה בוואטסאפ או ב-Gmail. השליחה עצמה נעשית אצלכם, בלחיצה על שלח."),
+        h("div", { class: "field" }, h("label", { for: "i-contacts" }, "מספרי טלפון או כתובות מייל (אפשר כמה, מופרדים בפסיק או בשורה חדשה)"), contactsT),
+        h("div", { class: "field" }, h("label", { for: "i-msg" }, "ההודעה"), msgT),
+        out,
+        h("div", { class: "field" }, h("label", { for: "i-link" }, "קישור לפגישה"),
+          h("div", { class: "row" }, h("div", { style: "flex:1;min-width:200px" }, linkI), h("button", { class: "btn", type: "button", onclick: () => copyText(link(), linkI) }, "העתקת קישור"))),
+        h("details", {}, h("summary", {}, "הקישור לא נפתח אצל חברים?"), h("div", { class: "stack", style: "padding-top:10px" },
+          h("p", { class: "muted small" }, "הקישור נבנה מכתובת האתר הזה. אם הוא לא נפתח אצל חברים, הדביקו כאן את הקישור שקיבלתם מכפתור השיתוף של האתר."),
+          h("div", { class: "field" }, h("label", { for: "i-base" }, "כתובת האתר"), baseI))));
+      render();
+    }
+
+    function redraw() {
+      if (!S.gotM) return;
+      if (!S.meeting) { app.replaceChildren(h("div", { class: "card stack" }, h("h2", {}, "הפגישה לא נמצאה"), h("p", { class: "muted" }, "ייתכן שהקישור לא מדויק או שאין לך גישה אליה."), h("div", {}, h("a", { class: "btn", href: "#" }, "לדף הבית")))); return; }
+      if (loading.isConnected) { loading.remove(); app.append(el.head, el.status, el.mine, el.results, el.invite); }
+      maybeInitDraft(); drawHead(); drawStatus(); drawMine(); drawResults();
+      if (!S.inviteBuilt) buildInvite();
+    }
+    const err = () => { loading.textContent = "לא הצלחנו לטעון את הפגישה. ייתכן שאין לך גישה לאתר."; };
+    onCleanup(store.onMeeting(mid, m => { S.meeting = m; S.gotM = true; clearTimeout(t); redraw(); }, err));
+    onCleanup(store.onResponses(mid, rs => { S.responses = rs; S.gotR = true; redraw(); }, () => {}));
+  }
+
+  /* ---------- routing + init ---------- */
+  function route() {
+    const hash = location.hash.slice(1);
+    if (hash.startsWith("m-") && hash.length > 2) showMeeting(hash.slice(2));
+    else if (hash === "new") showCreate();
+    else showHome();
+  }
+  async function init() {
+    let db = null;
+    try { const c = window.claude; if (c && c.use) { [db, userNs] = await Promise.all([c.use("db"), c.use("user")]); } } catch { db = null; }
+    store = db ? makeDbStore(db) : makeMemStore();
+    let id = null;
+    if (userNs) { try { id = await userNs.id(); } catch { id = null; } }
+    if (!id) { id = lsGet("anon"); if (!id) { id = "a" + newId() + newId(); lsSet("anon", id); } }
+    uid = id;
+    if (userNs) {
+      try { const w = await userNs.can("data.write"); if (w === false) canWrite = false; } catch { /* ignore */ }
+      if (!myName) { try { const me = await userNs.me(); if (me && me.name) myName = me.name; } catch { /* ignore */ } }
+    }
+    window.addEventListener("hashchange", route);
+    route();
+  }
+  init();
+})();
+</script>
